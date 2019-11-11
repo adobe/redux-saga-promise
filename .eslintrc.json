@@ -1,0 +1,33 @@
+{
+  "parser": "babel-eslint",
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "plugins": [
+      "ava",
+      "babel",
+      "promise",
+      "redux-saga"
+    ],
+    "extends": [
+      "standard",
+      "plugin:ava/recommended",
+      "plugin:node/recommended",
+      "plugin:promise/recommended",
+      "plugin:redux-saga/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+      "comma-dangle": ["error", "always-multiline"],
+      "key-spacing": "off",
+      "node/no-unsupported-features/es-syntax": "off",
+      "no-multi-spaces": "off",
+      "promise/catch-or-return": "off",
+      "redux-saga/no-unhandled-errors": 0
+    }
+}

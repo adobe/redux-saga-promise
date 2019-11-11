@@ -1,0 +1,45 @@
+{
+  "name": "redux-saga-promise",
+  "version": "1.0.0",
+  "description": "Create actions that return promises, which are resolved/rejected by a redux saga",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx babel src --out-dir dist",
+    "start": "npx babel src --watch --out-dir dist",
+    "test": "npm run build && ava"
+  },
+  "keywords": [
+    "redux",
+    "saga",
+    "action",
+    "promise",
+    "promises",
+    "resolve",
+    "reject"
+  ],
+  "author": "Ronen Barzel <ronen@barzel.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-optional-chaining": "^7.6.0",
+    "@babel/preset-env": "^7.7.1",
+    "ava": "^2.4.0",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.6.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-ava": "^9.0.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-redux-saga": "^1.1.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "redux-actions": "^2.6.5",
+    "redux-saga": "^1.1.3"
+  }
+}
