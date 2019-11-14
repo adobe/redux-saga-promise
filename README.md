@@ -31,9 +31,9 @@ npm install redux-saga-promise
 Include `promiseMiddleware` in the middleware chain *before* `sagaMiddleware`:
 
 ```js
-import { applyMiddleware, createStore } from 'redux'
-import { promiseMiddleware }            from 'redux-saga-promise'
-import createSagaMiddleware             from 'redux-saga'
+import { applyMiddleware, compose, createStore } from 'redux'
+import { promiseMiddleware }                     from 'redux-saga-promise'
+import createSagaMiddleware                      from 'redux-saga'
 
 // ...assuming rootReducer and rootSaga are defined
 const sagaMiddleware = createSagaMiddleware()
@@ -43,7 +43,7 @@ sagaMiddleware.run(rootSaga)
 
 ## Creating a promise action:
 
-Create a promise action using `createPromiseAction`, analogous to  `createAction` of [redux-actions](https://redux-actions.js.org):
+Create a promise action using `createPromiseAction`, analogous to  [`createAction`](https://redux-actions.js.org/api/createaction#createaction) of [redux-actions](https://redux-actions.js.org):
 
 ```js
 import { createPromiseAction } from 'redux-saga-promise'
@@ -51,8 +51,11 @@ import { createPromiseAction } from 'redux-saga-promise'
 export const myAction = createPromiseAction('MY_ACTION')
 ```
 
-Behind the scenes, `createPromiseAction` uses `createAction` to define [FSA](https://github.com/acdlite/flux-standard-action)-compliant actions.
-(And, as with `createAction`, technically `createPromiseAction` returns an action *creator* rather than an action.)
+Behind the scenes, `createPromiseAction` uses `createAction` to define
+[FSA](https://github.com/acdlite/flux-standard-action)-compliant actions.
+It also accepts `payload` and `meta` as optional second and third
+arguments, same as `createAction`.  (And, like `createAction`, technically
+`createPromiseAction` returns an action *creator* rather than an action.)
 
 ## Dispatching a promise action:
 
@@ -167,7 +170,7 @@ function * rootSaga () {
 })
 ```
 
-## Reducing the promise action:
+## Action lifecycle -- reducing the promise action:
 
 Commonly you want the redux store to reflect the status of a promise action:
 whether it's pending, what the resolved value is, or what the rejected error
