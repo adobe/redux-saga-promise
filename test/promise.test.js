@@ -16,7 +16,7 @@ import {
 } from '../dist'
 
 /*
- * Define sagas to test each of the library's exported helpers
+ * Test helper: Define sagas to test each of the library's exported sagas
  */
 const sagas = {
   //
@@ -61,6 +61,12 @@ const sagas = {
   controlAction: createAction('controlAction'),
 }
 
+/*
+ * Test helper:  Create a promise action, and create a store with
+ * everything hooked up, including a reducer for that action's lifecycle,
+ * and with a root saga that calls the given saga when the action is
+ * dispatched.
+ */
 function setup (saga) {
   //
   // Define the promise action we'll use in our tests.  To avoid possible
@@ -90,6 +96,10 @@ function setup (saga) {
 
   return { promiseAction, store }
 }
+
+/*
+ * The tests
+ */
 
 test('implementPromiseAction-resolve', async (t) => {
   // Setup

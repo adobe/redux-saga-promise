@@ -1,152 +1,102 @@
-/*
- * Mechanism for an action that works as a promise
- *
- * Create a promise action:
- *
- *     myAction = createPromiseAction('MY_ACTION')
- *
- * Dispatch it normally:
- *
- *     await dispatch(fetchInfo(payload))
- *
- * Resolve (or reject) it in a saga by
- *
- *     yield call(implementPromiseAction, action, function * () {
- *        // If this saga function succesfully returns a value, the promise will
- *        // resolve with that value.
- *        //
- *        // If this saga function throws an error, the promise will be rejected
- *        // with that error.
- *
- *        ... do some async stuff here ...
- *
- *        return value
- *      })
- *
- *     // Resolve the action with the given value
- *     yield call(resolvePromiseAction, action, value)
- *
- *     // Reject the action with the given error
- *     yield call(rejectPromiseAction, action, error)
- *
- * Also provide a convenience wrapper for dispatching in sagas.  This
- * provides dispatch() which behaves like call() -- it dispatches the
- * action, and if the action is a promise it waits for it to resolve:
- *
- *     yield dispatch(myAction, args...)
- *     yield dispatch(myAction(args...))
- *
- *     // => uses putResolve(action) for promiseActions and put(action) for other actions.
- *
- * Notes:
- *    myAction is actually a suite of FSA action creators
- *       myAction.trigger(payload)  // same as myAction(payload)
- *       myAction.resolved(result)  // dispatched by saga if promise resolves
- *       myAction.rejected(error)   // dispatched by saga if promise rejects
- *
- *     Uses https://redux-actions.js.org 's createAction() to define the action creators.
- *     You can also use its handleActions() to update state as the promise
- *     changes state, e.g.
- *         handleActions({
- *            [myAction.trigger]:  (state, {payload}) => {...state, loading: true}
- *            [myAction.resolved]: (state, {payload}) => {...state, info: payload, loading: false}
- *            [myAction.rejected]: (state, {payload}) => {...state, loading: false}
- *         })
- *
- *     Uses https://github.com/diegohaz/redux-saga-thunk to implement the
- *     promise mechanism.
- *
- *     The action creators are inspired by https://github.com/afitiskin/redux-saga-routines
- */
-
-// External
 import { call, put, putResolve } from 'redux-saga/effects'
 import { createAction }          from 'redux-actions'
 import isFunction                from 'lodash/isFunction'
 import merge                     from 'lodash/merge'
 
-const isTriggerAction = action => action.meta?.promise?.resolvedAction
+//
+// Internal helpers
+//
+const isTriggerAction     = action => action.meta?.promise?.resolvedAction
+const resolvePromise      = (action, value) => action.meta.promise.resolve(value)
+const rejectPromise       = (action, error) => action.meta.promise.reject(error)
+const verifyTriggerAction = (action, method) => { if (!isTriggerAction(action)) throw new Error(`redux-saga-promise: ${method}: first argument must be promise trigger action, got ${action}`) }
 
+//
+// createPromiseAction() creates the suite of actions
+//
+// The trigger action uses the passed payload & meta functions, and it
+// appends a `promise` object to the meta.  The promise object includes
+// other actions of the suite, and later on the middleware will add to it
+// functions to resolve and reject the promise.
+//
 export function createPromiseAction (prefix, payload, meta) {
-  const stages = [
-    {
-      type: 'TRIGGER',
-      payload,
-      meta: (...args) => merge(meta?.(...args), { promise: { resolvedAction: suite.resolved, rejectedAction: suite.rejected } }),
-    },
-    {
-      type: 'RESOLVED',
-      payload,
-      meta,
-    },
-    {
-      type: 'REJECTED',
-      payload,
-      meta,
-    },
-  ]
-  const createStage = ({ type, payload, meta }) => {
-    const action = createAction(`${prefix}.${type}`, payload, meta)
-    return action
-  }
-  const suite = createStage(stages[0])
-  stages.forEach((stage) => {
-    const actionCreator = createStage(stage)
-    Object.assign(suite, {
-      [stage.type.toLowerCase()]: actionCreator,
-      [stage.type.toUpperCase()]: actionCreator.toString(),
-    })
-  })
-
+  const createStage = (type, payload, meta) => createAction(`${prefix}.${type}`, payload, meta)
+  const resolvedAction = createStage('RESOLVED')
+  const rejectedAction = createStage('REJECTED')
+  const trigger        = createStage('TRIGGER', payload, (...args) => merge(meta?.(...args), { promise: { resolvedAction, rejectedAction } }))
+  const suite    = trigger
+  suite.trigger  = trigger
+  suite.resolved = resolvedAction
+  suite.rejected = rejectedAction
   return suite
 }
 
+//
+// Sagas to resolve & reject the promise
+//
 export function * implementPromiseAction (action, body) {
+  verifyTriggerAction(action, 'implementPromiseAction')
   try {
-    const value = yield call(body)
-    yield call(resolvePromiseAction, action, value)
+    resolvePromise(action, yield call(body))
   } catch (error) {
-    yield call(rejectPromiseAction, action, error)
+    rejectPromise(action, error)
   }
 }
 
 export function * resolvePromiseAction (action, value) {
-  if (!isTriggerAction(action)) {
-    throw new Error(`redux-saga-promise: resolvePromiseAction: argument must be promise trigger action, got: ${action}`)
-  }
-  const promise = action.meta.promise
-  yield put(promise.resolvedAction(value))
-  promise.resolve(value)
+  verifyTriggerAction(action, 'resolvePromiseAction')
+  resolvePromise(action, value)
 }
 
 export function * rejectPromiseAction (action, error) {
-  if (!isTriggerAction(action)) {
-    throw new Error(`redux-saga-promise: rejectPromiseAction: argument must be promise trigger action, got: ${action}`)
-  }
-  const promise = action.meta.promise
-  yield put(promise.rejectedAction(error))
-  promise.reject(error)
+  verifyTriggerAction(action, 'rejectPromiseAction')
+  rejectPromise(action, error)
 }
 
+//
+// dispatch() effect creator
+//
 // Convenience redux-saga effect creator that chooses put() or putResolve()
 // based on whether the action is a promise action.  Also allows passing
 // the action creator and payload separately
+//
 export function dispatch (action, args) {
   if (isFunction(action)) {
     action = action(args)
   } else if (action == null) {
-    throw new Error('redux-saga-promise: null action passed to dispatch()')
+    throw new Error('redux-saga-promise: null action passed to dispatch() effect creator')
   } else if (args !== undefined) {
     throw new Error('redux-saga-promise: extra args passed to dispatch() effect creator')
   }
   return isTriggerAction(action) ? putResolve(action) : put(action)
 }
 
-export function promiseMiddleware (store) {
-  return next => (action) => {
-    if (isTriggerAction(action)) {
-      return new Promise((resolve, reject) => next(merge(action, { meta: { promise: { resolve, reject } } })))
-    }
-    return next(action)
+//
+// promiseMiddleware
+//
+// For a trigger action a promise is created and returned, and the action's
+// meta.promise is augmented with resolve() and reject() functions for use
+// by the sagas.  (This middleware must come before sagaMiddleware so that
+// the sagas will have those functions available.)
+//
+// Other actions are passed through unmolested
+//
+export const promiseMiddleware = store => next => (action) => {
+  if (isTriggerAction(action)) {
+    return new Promise((resolve, reject) => next(merge(action, {
+      meta: {
+        promise: {
+          resolve: (value) => {
+            resolve(value)
+            store.dispatch(action.meta.promise.resolvedAction(value))
+          },
+          reject: (error) => {
+            reject(error)
+            store.dispatch(action.meta.promise.rejectedAction(error))
+          },
+        },
+      },
+    })))
   }
+  return next(action)
 }
