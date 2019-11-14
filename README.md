@@ -10,6 +10,8 @@ The library provides:
  
 * Saga helpers `implementPromiseAction()`, `resolvePromiseAction()`, and`rejectPromiseAction()` that you use to resolve or reject a promise action's promise.
 
+* Lifecyle actions `promise.trigger`, `promise.resolved`, and `promise.rejected` that you can use in reducers (or wherever)
+
 * Middleware that makes it work.
 
 * For convenience, an optional saga "effect creator" `dispatch()` to simplify dispatching promise actions and ordinary actions from within sagas.
@@ -162,7 +164,7 @@ import myAction from './myAction'
 // TODO: Implement this!   Failing for now
 //
 function * handleMyAction (action) {
-  yield call(rejectAction, action, new Error("Sorry, myAction is not implemented yet")
+  yield call(rejectPromiseAction, action, new Error("Sorry, myAction is not implemented yet")
 }
 
 function * rootSaga () {
@@ -179,7 +181,7 @@ is.
 Behind the scenes, `myAction = createPromiseAction('MY_ACTION')` actually
 creates a suite of three actions:
 
-* `myAction.trigger(payload)`: An alias for `myAction`, which is what you dispatch that then creates the promise.
+* `myAction.trigger`: An alias for `myAction`, which is what you dispatch that then creates the promise.
 
 * `myAction.resolved`: Dispatched automatically by `promiseMiddleware` when the promise is resolved; its payload is the resolved value of the promise
 
