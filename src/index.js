@@ -15,9 +15,10 @@ const verifyTriggerAction = (action, method) => { if (!isTriggerAction(action)) 
 // createPromiseAction() creates the suite of actions
 //
 // The trigger action uses the passed payload & meta functions, and it
-// appends a `promise` object to the meta.  The promise object includes
-// other actions of the suite, and later on the middleware will add to it
-// functions to resolve and reject the promise.
+// appends a `promise` object to the meta.  The promise object includes the
+// other lifecycle actions of the suite for use by the middleware; and
+// later on the middleware will add to it functions to resolve and reject
+// the promise.
 //
 export function createPromiseAction (prefix, payload, meta) {
   const createStage = (type, payload, meta) => createAction(`${prefix}.${type}`, payload, meta)
@@ -75,7 +76,7 @@ export function dispatch (action, args) {
 // promiseMiddleware
 //
 // For a trigger action a promise is created and returned, and the action's
-// meta.promise is augmented with resolve() and reject() functions for use
+// meta.promise is augmented with resolve and reject functions for use
 // by the sagas.  (This middleware must come before sagaMiddleware so that
 // the sagas will have those functions available.)
 //
