@@ -2,7 +2,7 @@
   "name": "redux-saga-promise",
   "version": "1.0.0",
   "description": "Create actions that return promises, which are resolved/rejected by a redux saga",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "npx babel src --out-dir dist",
     "start": "npx babel src --watch --out-dir dist",
