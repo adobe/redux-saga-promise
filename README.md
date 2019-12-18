@@ -297,6 +297,20 @@ const store = createStore(rootReducer, {}, compose(applyMiddleware(promiseMiddle
 sagaMiddleware.run(rootSaga)
 ```
 
+# Contributing
+
+Contributions are welcomed! Read the [Contributing Guide](./CONTRIBUTING.md) for more information.
+
+### Building & Testing
+
+`package.json` defines the usual scripts:
+
+* `npm build`: transpiles the source, placing the result in `dist/index.js`
+* `npm test`: builds, and then runs the test suite.
+
+The tests are written using the [AVA](https://github.com/avajs/ava) test runner.
+
+
 # Licensing
 
 This project is licensed under the Apache V2 License. See [LICENSE](./LICENSE) for more information.
