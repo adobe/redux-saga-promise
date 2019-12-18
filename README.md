@@ -296,3 +296,7 @@ const sagaMiddleware = createSagaMiddleware({ onError: (error) {
 const store = createStore(rootReducer, {}, compose(applyMiddleware(promiseMiddleware, sagaMiddleware)))
 sagaMiddleware.run(rootSaga)
 ```
+
+# Licensing
+
+This project is licensed under the Apache V2 License. See [LICENSE](./LICENSE) for more information.

@@ -18,7 +18,7 @@
     "reject"
   ],
   "author": "Ronen Barzel <ronen@barzel.org>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
