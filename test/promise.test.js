@@ -7,6 +7,7 @@ import isEqual                                    from 'lodash/isEqual'
 import test                                       from 'ava' // eslint-disable-line node/no-unpublished-import
 
 import {
+  ArgumentError,
   createPromiseAction,
   dispatch,
   implementPromiseAction,
@@ -86,15 +87,17 @@ function setup (saga) {
   //
   // Create the store
   //
-  const sagaMiddleware = createSagaMiddleware()
-  const store = createStore(reducer, {}, applyMiddleware(promiseMiddleware, sagaMiddleware))
+  let caughtError = null
+  const caughtMiddlewareError = () => caughtError
+  const sagaMiddleware        = createSagaMiddleware({ onError: error => (caughtError = error) })
+  const store                 = createStore(reducer, {}, applyMiddleware(promiseMiddleware, sagaMiddleware))
 
   //
   // Run the passed saga
   //
   sagaMiddleware.run(function * () { yield takeEvery(promiseAction, saga) })
 
-  return { promiseAction, store }
+  return { caughtMiddlewareError, promiseAction, store }
 }
 
 /*
@@ -210,4 +213,33 @@ test('dispatch', t => {
   t.assert(isEqual(dispatch(promiseAction(payload)), putResolve(promiseAction(payload))))
   t.assert(isEqual(dispatch(ordinaryAction, payload), put(ordinaryAction(payload))))
   t.assert(isEqual(dispatch(ordinaryAction(payload)), put(ordinaryAction(payload))))
+})
+
+test('implementPromiseAction-ArgumentError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.implementSaga)
+  const bogusPromiseAction = () => ({ type: promiseAction.toString() }) // mimics promise action but doesn't have proper meta
+  store.dispatch(bogusPromiseAction())
+  t.assert(caughtMiddlewareError() instanceof ArgumentError)
+})
+
+test('resolvePromiseAction-ArgumentError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.resolveSaga)
+  const bogusPromiseAction = () => ({ type: promiseAction.toString() }) // mimics promise action but doesn't have proper meta
+  store.dispatch(bogusPromiseAction())
+  store.dispatch(sagas.controlAction({}))
+  t.assert(caughtMiddlewareError() instanceof ArgumentError)
+})
+
+test('rejectPromiseAction-ArgumentError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.rejectSaga)
+  const bogusPromiseAction = () => ({ type: promiseAction.toString() }) // mimics promise action but doesn't have proper meta
+  store.dispatch(bogusPromiseAction())
+  store.dispatch(sagas.controlAction({}))
+  t.assert(caughtMiddlewareError() instanceof ArgumentError)
+})
+
+test('dispatch-ArgumentError', t => {
+  const promiseAction = createPromiseAction('testPromiseAction')
+  t.throws(() => dispatch(promiseAction(), 'extra-arg'))
+  t.throws(() => dispatch(null), ArgumentError)
 })

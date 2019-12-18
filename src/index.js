@@ -6,10 +6,15 @@ import merge                     from 'lodash/merge'
 //
 // Internal helpers
 //
-const isTriggerAction     = action => action.meta?.promise?.resolvedAction
+const isTriggerAction     = action => action.meta?.promise?.resolvedAction != null
 const resolvePromise      = (action, value) => action.meta.promise.resolve(value)
 const rejectPromise       = (action, error) => action.meta.promise.reject(error)
-const verifyTriggerAction = (action, method) => { if (!isTriggerAction(action)) throw new Error(`redux-saga-promise: ${method}: first argument must be promise trigger action, got ${action}`) }
+const verifyTriggerAction = (action, method) => { if (!isTriggerAction(action)) throw new ArgumentError(`redux-saga-promise: ${method}: first argument must be promise trigger action, got ${action}`) }
+
+//
+// Custom error class
+//
+export class ArgumentError extends Error {}
 
 //
 // createPromiseAction() creates the suite of actions
@@ -65,9 +70,9 @@ export function dispatch (action, args) {
   if (isFunction(action)) {
     action = action(args)
   } else if (action == null) {
-    throw new Error('redux-saga-promise: null action passed to dispatch() effect creator')
+    throw new ArgumentError('redux-saga-promise: null action passed to dispatch() effect creator')
   } else if (args !== undefined) {
-    throw new Error('redux-saga-promise: extra args passed to dispatch() effect creator')
+    throw new ArgumentError('redux-saga-promise: extra args passed to dispatch() effect creator')
   }
   return isTriggerAction(action) ? putResolve(action) : put(action)
 }

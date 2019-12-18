@@ -123,6 +123,9 @@ export function * rootSaga () {
 })
 ```
 
+If you call `implementPromiseAction()` with a first argument that is not a
+promise action, it will throw an error (see [Argument Validation](#argument-validation) below).
+
 ### `resolvePromiseAction(action, value)`
 
 Sometimes you may want finer control, or want to be more explicit when you know an
@@ -149,6 +152,9 @@ function * rootSaga () {
 })
 ```
 
+If you call `resolvePromiseAction()` with a first argument that is not a
+promise action, it will throw an error (see [Argument Validation](#argument-validation) below).
+
 ### `rejectPromiseAction(action, value)`
 
 Sometimes you may want finer control, or want to explicitly fail without needing to `throw`. This helper causes the promise to reject with the
@@ -171,6 +177,10 @@ function * rootSaga () {
   yield takeEvery(myAction, handleMyAction)
 })
 ```
+
+If you call `rejectPromiseAction()` with a first argument that is not a
+promise action, it will throw an error (see [Argument Validation](#ArgumentValidation) below).
+
 
 ## Action lifecycle -- reducing the promise action:
 
@@ -256,3 +266,33 @@ function * myBusinessLogic () {
 Behind the scenes, `dispatch()` simply returns `put(action)` or
 `putResolve(action)` based on whether the action was created by
 `createPromiseAction`.
+
+If you call `dispatch()` with a first argument that is `null`, or the first argument is not a function but you provide extra `...args` anyway, it will throw
+an error (see [Argument Validation](#argument-validation) below)
+
+##<a name='argument-validation'></a> Argument Validation
+
+To avoid accidental confusion, all the helper functions validate their
+arguments and will throw a custom `Error` subclass `ArgumentError` in case
+of error.  Note this does *not* mean that a promise action will reject, but
+rather that the saga which called the helper will throw an error.
+Accordingly, if your sagas don't do other error handling, the error will bubble
+up to the [`onError`
+hook](https://redux-saga.js.org/docs/api/#createsagamiddlewareoptions), and if you want to you can test for it:
+
+```js
+import { applyMiddleware, compose, createStore } from 'redux'
+import { ArgumentError, promiseMiddleware }      from 'redux-saga-promise'
+import createSagaMiddleware                      from 'redux-saga'
+
+// ...assuming rootReducer and rootSaga are defined
+const sagaMiddleware = createSagaMiddleware({ onError: (error) {
+  if (error instanceof ArgumentError) {
+    console.error('Oops, programmer error! I called redux-saga-promise incorrectly:', error)
+  } else {
+    // ...
+  }
+})
+const store = createStore(rootReducer, {}, compose(applyMiddleware(promiseMiddleware, sagaMiddleware)))
+sagaMiddleware.run(rootSaga)
+```
