@@ -1,4 +1,4 @@
-# redux-saga-promise
+# @adobe/redux-saga-promise
 
 Simple clean utility to define actions that return promises, for use with [redux-saga](https://redux-saga.js.org)
 
@@ -23,7 +23,7 @@ These are described in detail below.
 As usual, install via:
 
 ```
-npm install redux-saga-promise
+npm install @adobe/redux-saga-promise
 ```
 
 # Usage
@@ -34,7 +34,7 @@ Include `promiseMiddleware` in the middleware chain *before* `sagaMiddleware`:
 
 ```js
 import { applyMiddleware, compose, createStore } from 'redux'
-import { promiseMiddleware }                     from 'redux-saga-promise'
+import { promiseMiddleware }                     from '@adobe/redux-saga-promise'
 import createSagaMiddleware                      from 'redux-saga'
 
 // ...assuming rootReducer and rootSaga are defined
@@ -48,7 +48,7 @@ sagaMiddleware.run(rootSaga)
 Create a promise action using `createPromiseAction`, analogous to  [`createAction`](https://redux-actions.js.org/api/createaction#createaction) of [redux-actions](https://redux-actions.js.org):
 
 ```js
-import { createPromiseAction } from 'redux-saga-promise'
+import { createPromiseAction } from '@adobe/redux-saga-promise'
 
 export const myAction = createPromiseAction('MY_ACTION')
 ```
@@ -99,7 +99,7 @@ will be rejected with that error.  For example:
 ```js
 import { call, takeEvery }        from 'redux-saga/effects'
 import { promises as fsPromises } from 'fs'
-import { implementPromiseAction } from 'redux-saga-promise'
+import { implementPromiseAction } from '@adobe/redux-saga-promise'
 
 import myAction from './myAction'
 
@@ -134,7 +134,7 @@ passed value.  For example:
 
 ```js
 import { call, delay, takeEvery } from 'redux-saga/effects'
-import { resolvePromiseAction }   from 'redux-saga-promise'
+import { resolvePromiseAction }   from '@adobe/redux-saga-promise'
 
 import myAction from './myAction'
 
@@ -162,7 +162,7 @@ passed value, which typically should be an `Error`.  For example:
 
 ```js
 import { call, takeEvery }     from 'redux-saga/effects'
-import { rejectPromiseAction } from 'redux-saga-promise'
+import { rejectPromiseAction } from '@adobe/redux-saga-promise'
 
 import myAction from './myAction'
 
@@ -254,7 +254,7 @@ I.e. the above saga then becomes:
 
 ```js
 import { call }     from 'redux-saga/effects'
-import { dispatch } from 'redux-saga-promise'
+import { dispatch } from '@adobe/redux-saga-promise'
 
 function * myBusinessLogic () {
   yield dispatch(myPromiseAction, { c:3, d: 4 })    // Waits for promise to resolve
@@ -282,7 +282,7 @@ hook](https://redux-saga.js.org/docs/api/#createsagamiddlewareoptions), and if y
 
 ```js
 import { applyMiddleware, compose, createStore } from 'redux'
-import { ArgumentError, promiseMiddleware }      from 'redux-saga-promise'
+import { ArgumentError, promiseMiddleware }      from '@adobe/redux-saga-promise'
 import createSagaMiddleware                      from 'redux-saga'
 
 // ...assuming rootReducer and rootSaga are defined
