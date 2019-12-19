@@ -214,43 +214,51 @@ export const reducer = handleActions({
   }, {})
 ```
 
-## Helper for dispatching actions in sagas
+## Dispatching a promise action in a saga
+
+In the sagas that perform your business logic, you may at times want to dispatch a promise action and wait for it to resolve.  You can do that using redux-saga's [`putResolve`](http://redux-saga.js.org/docs/api/#putresolveaction) Effect:
+
+```const result = yield putResolve(myPromiseAction)```
+
+This dispatches the action and waits for the promise to resolve, returning the resolved  value.  Or if the promise rejects it will bubble up an error.
+
+*Caution!* If you use [`put()`](http://redux-saga.js.org/docs/api/#putaction`) instead of `putResolve()`, the saga will continue execution immediately without waiting for the promise to resolve.
+
+### Helper for dispatching actions in sagas
 
 *TL;dr:  The `dispatch()` helper is entirely optional.  You can ignore this section.  But for sagas that dispatch promise actions,
 you can use it if you think it will make your code cleaner or more robust.*
 
-In sagas that perform your business logic, you normally use
-[`put`](http://redux-saga.js.org/docs/api/#putaction`) to dispatch ordinary
-actions. But if the action returns a promise and you want to wait for it, you
-must remember to use
-[`putResolve`](http://redux-saga.js.org/docs/api/#putresolveaction) instead.
-So you might have:
+In sagas that perform your business logic if you dispatch a mix of ordinary actions and promise actions, you must remember use `put()` vs `putResolve()` appropriately.  E.g., you might have:
 
 
 ```js
 import { call, put, putResolve } from 'redux-saga/effects'
 
 function * myBusinessLogic () {
-  yield putResolve(myPromiseAction({ c:3, d: 4 })) // Waits for promise to resolve
-  yield call(someOtherFunction, { e: 5 })          // Waits for promise to resolve if necessary
-  yield put(someOrdinaryAction({ a: 1, b: 2}))     // Nothing to wait for
+  yield putResolve(myPromiseAction({ c:3, d: 4 })) // Wait for promise to resolve
+  yield put(someOrdinaryAction({ a: 1, b: 2}))     // Don't wait
+  yield call(someAsyncFunction, { e: 5 })          // Waits for promise to resolve
+  yield call(someOrdinaryFunction, { f: 6 })       // Doesn't wait
 }
 ```
 
-It's easy to accidentally use `put()` instead of `putResolve()` which means the saga will immediately continue without waiting for your promise to resolve -- in many
-cases causing subtle errors.  Voice of experience here!
+Unfortunately it's easy to accidentally use `put()` instead of `putResolve()` which means the saga will immediately continue without waiting for your promise to resolve -- in many
+cases causing subtle errors.  (Voice of experience here!)
 
-To avoid that error, and for consistency, `redux-saga-promise` provides an "effect creator" named `dispatch`, designed to mimic the behavior of `call()`:
+To avoid that error, and for consistency, `redux-saga-promise` provides an "effect creator" named `dispatch`.  Use it via:
 
-* `yield dispatch(action)` will wait if the action was created by `createPromiseAction`, otherwise will return immediately.
+* `yield dispatch(action)`, passing an action
+* `yield dispatch(actionCreator, ...args)`, passing an actionCreator and optional args, which `dispatch()` will to produce an action.
 
-* `yield dispatch(actionCreator, ...args)` will call `actionCreator` with the given args and dispatch it.
+The behavior mimics that of [`call()`](https://redux-saga.js.org/docs/api/#callfn-args) -- 
+if the action is a promise action, `yield dispatch()` will dispatch it and block until the
+promise resolves then return the resolved value (or will bubble up an error if
+the promise rejects).  For any other action, `yield dispatch()` will simply
+dispatch it normally and return whatever `store.dispatch` returns.
 
-This lets you you can use `yield dispatch(action, ...args)` everywhere to dispatch
-actions, like you use `yield call(function, ...args)` to call functions. Your business logic then doesn't need to worry about which actions are promise actions and which
-aren't.
-
-I.e. the above saga then becomes:
+This lets you use `yield dispatch(action, ...args)` everywhere to dispatch
+actions, like you can use `yield call(function, ...args)` to call functions. You then doesn't need to worry about which actions are promise actions and which aren't.  I.e. the above saga then becomes:
 
 ```js
 import { call }     from 'redux-saga/effects'
@@ -258,8 +266,9 @@ import { dispatch } from '@adobe/redux-saga-promise'
 
 function * myBusinessLogic () {
   yield dispatch(myPromiseAction, { c:3, d: 4 })    // Waits for promise to resolve
-  yield call(someOtherFunction, { e: 5 })           // Waits for promise to resolve if necessary
-  yield dispatch(someOrdinaryAction, { a: 1, b: 2}) // Nothing to wait for
+  yield dispatch(someOrdinaryAction, { a: 1, b: 2}) // Doesn't wait
+  yield call(someAsyncFunction, { e: 5 })           // Waits for promise to resolve
+  yield call(someOrdinaryFunction, { f: 6 })        // Doesn't wait
 }
 ```
 
@@ -274,11 +283,7 @@ an error (see [Argument Validation](#argument-validation) below)
 
 To avoid accidental confusion, all the helper functions validate their
 arguments and will throw a custom `Error` subclass `ArgumentError` in case
-of error.  Note this does *not* mean that a promise action will reject, but
-rather that the saga which called the helper will throw an error.
-Accordingly, if your sagas don't do other error handling, the error will bubble
-up to the [`onError`
-hook](https://redux-saga.js.org/docs/api/#createsagamiddlewareoptions), and if you want to you can test for it:
+of error.  This error will be bubbled up by redux-saga as usual, and as usual you can catch it in a saga otherwise it will will bubble up to the [`onError`](https://redux-saga.js.org/docs/api/#createsagamiddlewareoptions) hook.  If you want to, you can test the error type, e.g.:
 
 ```js
 import { applyMiddleware, compose, createStore } from 'redux'
@@ -286,9 +291,9 @@ import { ArgumentError, promiseMiddleware }      from '@adobe/redux-saga-promise
 import createSagaMiddleware                      from 'redux-saga'
 
 // ...assuming rootReducer and rootSaga are defined
-const sagaMiddleware = createSagaMiddleware({ onError: (error) {
+const sagaMiddleware = createSagaMiddleware({ onError: (error) => {
   if (error instanceof ArgumentError) {
-    console.error('Oops, programmer error! I called redux-saga-promise incorrectly:', error)
+    console.log('Oops, programmer error! I called redux-saga-promise incorrectly:', error)
   } else {
     // ...
   }
