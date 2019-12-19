@@ -1,5 +1,5 @@
 {
-  "name": "redux-saga-promise",
+  "name": "@adobe/redux-saga-promise",
   "version": "1.0.0",
   "description": "Create actions that return promises, which are resolved/rejected by a redux saga",
   "main": "dist/index.js",
@@ -41,5 +41,16 @@
     "lodash": "^4.17.15",
     "redux-actions": "^2.6.5",
     "redux-saga": "^1.1.3"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adobe/redux-saga-promise.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adobe/redux-saga-promise/issues"
+  },
+  "homepage": "https://github.com/adobe/redux-saga-promise#readme"
 }
