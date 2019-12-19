@@ -279,7 +279,7 @@ Behind the scenes, `dispatch()` simply returns `put(action)` or
 If you call `dispatch()` with a first argument that is `null`, or the first argument is not a function but you provide extra `...args` anyway, it will throw
 an error (see [Argument Validation](#argument-validation) below)
 
-##<a name='argument-validation'></a> Argument Validation
+## <a name='argument-validation'></a> Argument Validation
 
 To avoid accidental confusion, all the helper functions validate their
 arguments and will throw a custom `Error` subclass `ArgumentError` in case
