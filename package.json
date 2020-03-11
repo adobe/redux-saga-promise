@@ -1,6 +1,6 @@
 {
   "name": "@adobe/redux-saga-promise",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Create actions that return promises, which are resolved/rejected by a redux saga",
   "main": "dist/index.js",
   "scripts": {
