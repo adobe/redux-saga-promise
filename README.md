@@ -33,13 +33,13 @@ npm install @adobe/redux-saga-promise
 You must include include `promiseMiddleware` in the middleware chain, and it must come *before* `sagaMiddleware`:
 
 ```js
-import { applyMiddleware, compose, createStore } from 'redux'
-import { promiseMiddleware }                     from '@adobe/redux-saga-promise'
-import createSagaMiddleware                      from 'redux-saga'
+import { applyMiddleware, createStore } from 'redux'
+import { promiseMiddleware }            from '@adobe/redux-saga-promise'
+import createSagaMiddleware             from 'redux-saga'
 
 // ...assuming rootReducer and rootSaga are defined
 const sagaMiddleware = createSagaMiddleware()
-const store          = createStore(rootReducer, {}, compose(applyMiddleware(promiseMiddleware, sagaMiddleware)))
+const store          = createStore(rootReducer, {}, applyMiddleware(promiseMiddleware, sagaMiddleware))
 sagaMiddleware.run(rootSaga)
 ```
 
