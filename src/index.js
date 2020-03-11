@@ -21,12 +21,16 @@ import merge                     from 'lodash/merge'
 const isTriggerAction     = action => action.meta?.promise?.resolvedAction != null
 const resolvePromise      = (action, value) => action.meta.promise.resolve(value)
 const rejectPromise       = (action, error) => action.meta.promise.reject(error)
-const verifyTriggerAction = (action, method) => { if (!isTriggerAction(action)) throw new ArgumentError(`redux-saga-promise: ${method}: first argument must be promise trigger action, got ${action}`) }
+const verify = (action, method) => {
+  if (!isTriggerAction(action)) throw new ArgumentError(`redux-saga-promise: ${method}: first argument must be promise trigger action, got ${action}`)
+  if (!isFunction(action.meta.promise.resolve)) throw new ConfigurationError(`redux-saga-promise: ${method}: Unable to execute--it seems that promiseMiddleware has not been not included before SagaMiddleware`)
+}
 
 //
 // Custom error class
 //
-export class ArgumentError extends Error {}
+export class ArgumentError      extends Error {}
+export class ConfigurationError extends Error {}
 
 //
 // createPromiseAction() creates the suite of actions
@@ -53,7 +57,7 @@ export function createPromiseAction (prefix, payload, meta) {
 // Sagas to resolve & reject the promise
 //
 export function * implementPromiseAction (action, body) {
-  verifyTriggerAction(action, 'implementPromiseAction')
+  verify(action, 'implementPromiseAction')
   try {
     resolvePromise(action, yield call(body))
   } catch (error) {
@@ -62,12 +66,12 @@ export function * implementPromiseAction (action, body) {
 }
 
 export function * resolvePromiseAction (action, value) {
-  verifyTriggerAction(action, 'resolvePromiseAction')
+  verify(action, 'resolvePromiseAction')
   resolvePromise(action, value)
 }
 
 export function * rejectPromiseAction (action, error) {
-  verifyTriggerAction(action, 'rejectPromiseAction')
+  verify(action, 'rejectPromiseAction')
   rejectPromise(action, error)
 }
 

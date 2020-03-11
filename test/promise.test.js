@@ -20,6 +20,7 @@ import test                                       from 'ava' // eslint-disable-l
 
 import {
   ArgumentError,
+  ConfigurationError,
   createPromiseAction,
   dispatch,
   implementPromiseAction,
@@ -80,7 +81,7 @@ const sagas = {
  * and with a root saga that calls the given saga when the action is
  * dispatched.
  */
-function setup (saga) {
+function setup (saga, { withMiddleware = true } = {}) {
   //
   // Define the promise action we'll use in our tests.  To avoid possible
   // contamination, create a new one for each test
@@ -102,7 +103,8 @@ function setup (saga) {
   let caughtError = null
   const caughtMiddlewareError = () => caughtError
   const sagaMiddleware        = createSagaMiddleware({ onError: error => (caughtError = error) })
-  const store                 = createStore(reducer, {}, applyMiddleware(promiseMiddleware, sagaMiddleware))
+  const middlewares           = withMiddleware ? [promiseMiddleware, sagaMiddleware] : [sagaMiddleware]
+  const store                 = createStore(reducer, {}, applyMiddleware(...middlewares))
 
   //
   // Run the passed saga
@@ -254,4 +256,25 @@ test('dispatch-ArgumentError', t => {
   const promiseAction = createPromiseAction('testPromiseAction')
   t.throws(() => dispatch(promiseAction(), 'extra-arg'))
   t.throws(() => dispatch(null), ArgumentError)
+})
+
+test('implementPromiseAction-ConfigurationError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.implementSaga, { withMiddleware: false })
+  store.dispatch(promiseAction())
+  store.dispatch(sagas.controlAction({}))
+  t.assert(caughtMiddlewareError() instanceof ConfigurationError)
+})
+
+test('resolvePromiseAction-ConfigurationError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.resolveSaga, { withMiddleware: false })
+  store.dispatch(promiseAction())
+  store.dispatch(sagas.controlAction({}))
+  t.assert(caughtMiddlewareError() instanceof ConfigurationError)
+})
+
+test('rejectPromiseAction-ConfigurationError', t => {
+  const { caughtMiddlewareError, promiseAction, store } = setup(sagas.rejectSaga, { withMiddleware: false })
+  store.dispatch(promiseAction())
+  store.dispatch(sagas.controlAction({}))
+  t.assert(caughtMiddlewareError() instanceof ConfigurationError)
 })
