@@ -10,7 +10,6 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import 'regenerator-runtime/runtime' // eslint-disable-line node/no-unpublished-import
 import { applyMiddleware, createStore }           from 'redux' // eslint-disable-line node/no-extraneous-import
 import { call, put, putResolve, take, takeEvery } from 'redux-saga/effects'
 import { createAction, handleActions }            from 'redux-actions'
@@ -254,8 +253,8 @@ test('rejectPromiseAction-ArgumentError', t => {
 
 test('dispatch-ArgumentError', t => {
   const promiseAction = createPromiseAction('testPromiseAction')
-  t.throws(() => dispatch(promiseAction(), 'extra-arg'))
-  t.throws(() => dispatch(null), ArgumentError)
+  t.throws(() => dispatch(promiseAction(), 'extra-arg'), { instanceOf: ArgumentError })
+  t.throws(() => dispatch(null), { instanceOf: ArgumentError })
 })
 
 test('implementPromiseAction-ConfigurationError', t => {
