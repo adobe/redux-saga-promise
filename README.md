@@ -249,7 +249,7 @@ cases causing subtle errors.  (Voice of experience here!)
 To avoid that error, and for consistency, `redux-saga-promise` provides an "effect creator" named `dispatch`.  Use it via:
 
 * `yield dispatch(action)`, passing an action
-* `yield dispatch(actionCreator, ...args)`, passing an actionCreator and optional args, which `dispatch()` will to produce an action.
+* `yield dispatch(actionCreator, ...args)`, passing an actionCreator and optional args, which `dispatch()` will invoke to produce the action.
 
 The behavior mimics that of [`call()`](https://redux-saga.js.org/docs/api/#callfn-args) -- 
 if the action is a promise action, `yield dispatch()` will dispatch it and block until the
