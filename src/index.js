@@ -35,17 +35,17 @@ export class ConfigurationError extends Error {}
 //
 // createPromiseAction() creates the suite of actions
 //
-// The trigger action uses the passed payload & meta functions, and it
+// The trigger action uses the passed payloadCreator & metaCreator functions, and it
 // appends a `promise` object to the meta.  The promise object includes the
 // other lifecycle actions of the suite for use by the middleware; and
 // later on the middleware will add to it functions to resolve and reject
 // the promise.
 //
-export function createPromiseAction (prefix, payload, meta) {
-  const createStage = (type, payload, meta) => createAction(`${prefix}.${type}`, payload, meta)
+export function createPromiseAction (prefix, payloadCreator, metaCreator) {
+  const createStage = (type, payloadCreator, metaCreator) => createAction(`${prefix}.${type}`, payloadCreator, metaCreator)
   const resolvedAction = createStage('RESOLVED')
   const rejectedAction = createStage('REJECTED')
-  const trigger        = createStage('TRIGGER', payload, (...args) => merge(meta?.(...args), { promise: { resolvedAction, rejectedAction } }))
+  const trigger        = createStage('TRIGGER', payloadCreator, (...args) => merge(metaCreator?.(...args), { promise: { resolvedAction, rejectedAction } }))
   const suite    = trigger
   suite.trigger  = trigger
   suite.resolved = resolvedAction
