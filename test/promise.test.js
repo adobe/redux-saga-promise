@@ -279,11 +279,11 @@ test('rejectPromiseAction-ConfigurationError', t => {
   t.assert(caughtMiddlewareError() instanceof ConfigurationError)
 })
 
-test('promiseCreator-and-metaCreator', t => {
+test('payloadCreator-and-metaCreator', t => {
   const actionCreator = createPromiseAction(
     'creators',
-    (payload, meta) => ({ value: payload }),
-    (payload, meta) => ({ attr: meta }),
+    (a, b) => ({ value: a }),   // payloadCreator
+    (a, b) => ({ attr: b }),    // metaCreator
   )
   const action = actionCreator(4, 5)
   t.assert(action.payload.value === 4)
