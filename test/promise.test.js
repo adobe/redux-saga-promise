@@ -278,3 +278,14 @@ test('rejectPromiseAction-ConfigurationError', t => {
   store.dispatch(sagas.controlAction({}))
   t.assert(caughtMiddlewareError() instanceof ConfigurationError)
 })
+
+test('payloadCreator-and-metaCreator', t => {
+  const actionCreator = createPromiseAction(
+    'creators',
+    (a, b) => ({ value: a }),   // payloadCreator
+    (a, b) => ({ attr: b }),    // metaCreator
+  )
+  const action = actionCreator(4, 5)
+  t.assert(action.payload.value === 4)
+  t.assert(action.meta.attr === 5)
+})

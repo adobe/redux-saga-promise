@@ -50,13 +50,14 @@ Create a promise action using `createPromiseAction`, analogous to  [`createActio
 ```js
 import { createPromiseAction } from '@adobe/redux-saga-promise'
 
-export const myAction = createPromiseAction('MY_ACTION')
+export const myAction = createPromiseAction('MY_ACTION') 
+                  // or createPromiseAction('MY_ACTION', payloadCreator)
+                  // or createPromiseAction('MY_ACTION', payloadCreator, metaCreator)
 ```
 
 Behind the scenes, `createPromiseAction` uses `createAction` to define
-[FSA](https://github.com/acdlite/flux-standard-action)-compliant actions.
-It also accepts `payload` and `meta` as optional second and third
-arguments, same as `createAction`.  (And, like `createAction`, technically
+[FSA](https://github.com/acdlite/flux-standard-action)-compliant actions, with the same [optional `payloadCreator`](https://redux-actions.js.org/api/createaction#createactiontype-payloadcreator) and [`metaCreator` arguments](https://redux-actions.js.org/api/createaction#createactiontype-payloadcreator-metacreator).
+(And, like `createAction`, technically
 `createPromiseAction` returns an action *creator* rather than an action.)
 
 ## Dispatching a promise action:
